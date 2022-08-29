@@ -9,12 +9,18 @@ class Game():
     def __init__(self) -> None:
         self.screen_width, self.screen_height = 1200, 800
 
-        pan_mode = False
+        self.mode = 1
+        self.available_modes = [
+            "play",
+            "pan",
+            "select"
+        ]
+
         rl.init_window(self.screen_width, self.screen_height,"pyplanetx")
 
         self.camera: rl.Camera2D = rl.Camera2D(
                 rl.Vector2(0,0), 
-                rl.Vector2(-300,-100), 
+                rl.Vector2(-500,-300), 
                 0.0, 
                 1.0,
         )
@@ -29,7 +35,9 @@ class Game():
             rl.end_mode_2d()
             self._draw()
             self._update(rl.get_frame_time())
-            rl.draw_text("{} {}".format(str(round(self.camera.target.x,2)), str(round(self.camera.target.y,2))) ,20, 660, 20, rl.Color(3,3,3,255))
+            rl.draw_text("camera target: {} {}".format(str(round(self.camera.target.x,2)), str(round(self.camera.target.y,2))) ,20, 660, 20, rl.Color(0,0,0,255))
+            rl.draw_text(f"player coordinate: ", 20, 685, 20, rl.Color(0,0,0,255))
+            rl.draw_text(f"mode: {self.available_modes[self.mode]}", 20, 710, 20,rl.Color(0,0,0,225))
             rl.end_drawing()
         rl.close_window()
    
@@ -53,33 +61,34 @@ class Game():
 
     def _2dcam(self):
         self._draw_checkerboard(rl.Color(225,225,225,255),rl.Color(205,205,205,205), -50, 50,50)
-        rl.draw_rectangle(200,200,50,50, rl.Color(5,5,5,255))
+        rl.draw_rectangle(0,0,50,50, rl.Color(5,5,5,255))
 
     def _movement(self, dt) -> None:
-        try:
-            if self.camera_pan_queue[0] == KEY_A:
-                self.camera.target.x -= 350 * dt
-                self.camera_pan_queue = self.camera_pan_queue[1:]
-            if self.camera_pan_queue[0] == KEY_D:
-                self.camera.target.x += 350 * dt
-                self.camera_pan_queue = self.camera_pan_queue[1:]
-            if self.camera_pan_queue[0] == KEY_W:
-                self.camera.target.y -= 350 * dt
-                self.camera_pan_queue = self.camera_pan_queue[1:]
-            if self.camera_pan_queue[0] == KEY_S:
-                self.camera.target.y += 350 * dt
-                self.camera_pan_queue = self.camera_pan_queue[1:]
-        except IndexError:
-            pass
+        if self.available_modes[self.mode] == "pan":
+            try:
+                if self.camera_pan_queue[0] == KEY_A:
+                    self.camera.target.x -= 350 * dt
+                    self.camera_pan_queue = self.camera_pan_queue[1:]
+                if self.camera_pan_queue[0] == KEY_D:
+                    self.camera.target.x += 350 * dt
+                    self.camera_pan_queue = self.camera_pan_queue[1:]
+                if self.camera_pan_queue[0] == KEY_W:
+                    self.camera.target.y -= 350 * dt
+                    self.camera_pan_queue = self.camera_pan_queue[1:]
+                if self.camera_pan_queue[0] == KEY_S:
+                    self.camera.target.y += 350 * dt
+                    self.camera_pan_queue = self.camera_pan_queue[1:]
+            except IndexError:
+                pass
 
-        if rl.is_key_down(KEY_A):
-            self.camera_pan_queue.append(KEY_A)
-        if rl.is_key_down(KEY_D):
-            self.camera_pan_queue.append(KEY_D)
-        if rl.is_key_down(KEY_W):
-            self.camera_pan_queue.append(KEY_W)
-        if rl.is_key_down(KEY_S):
-            self.camera_pan_queue.append(KEY_S)
-    
+            if rl.is_key_down(KEY_A):
+                self.camera_pan_queue.append(KEY_A)
+            if rl.is_key_down(KEY_D):
+                self.camera_pan_queue.append(KEY_D)
+            if rl.is_key_down(KEY_W):
+                self.camera_pan_queue.append(KEY_W)
+            if rl.is_key_down(KEY_S):
+                self.camera_pan_queue.append(KEY_S)
+        
     def _update(self, dt: float) -> None:
         self._movement(dt) 
