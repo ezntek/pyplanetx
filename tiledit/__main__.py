@@ -1,6 +1,13 @@
 import pyray as rl
-from colors import Colors as clr
+from colors import Colors
 from colors import get_color_dict
+
+class ColoredRect():
+    def __init__(self, posx: float, posy: float, width: float, height: float, color: rl.Color) -> None:
+        self.rect = rl.Rectangle(posx,posy,width,height)
+        self.clr = color
+    def draw(self):
+        rl.draw_rectangle_rec(self.rect, self.clr)
 
 class Selection():
     def __init__(self, pos: rl.Vector2, width:int, thickness:int) -> None:
@@ -21,9 +28,9 @@ class Selection():
     def update(self):
         self.timer += 1
 
-        if self.timer % 24 == 0:
+        if self.timer % 60 == 0:
             self.selection_clr.a = 255
-        elif self.timer % 24 == 12:
+        elif self.timer % 60 == 30:
             self.selection_clr.a = 0
 
 
@@ -42,41 +49,68 @@ def draw_checkerboard(base_color: rl.Color, alt_color: rl.Color, begin: int, len
 
 class Game():
     def __init__(self) -> None:
-        self.grid = [[clr.nothing for _ in range(50)] for _ in range(50)]
+        self.grid = [[Colors.nothing for _ in range(50)] for _ in range(50)]
         
         self.clr_dict = get_color_dict()
-        self.modes = ["color_picker", "edit", "menu"]
-        self.selection = rl.Vector2(25,25)
+        self.modes = ["color picker", "edit", "menu"]
+        self.mode = "color picker"
 
         rl.init_window(1200,800,"TileEdit")
         rl.set_target_fps(60)
 
         self.window_banner = "[NEW FILE]"
         self.window_title = f"TileEdit -- {self.window_banner}"
-        self.test_selection = Selection(rl.Vector2(10,10),35,5)
+        self.selection = Selection(rl.Vector2(660,150),40,5)
+
+        rl.set_window_title(self.window_title)
         print(len(self.clr_dict))
-   
+
+        self.draw_color_ypos = 0
+        self.draw_color_xpos = 660
+
         while not rl.window_should_close():
             self.update()
             rl.begin_drawing()
-            rl.clear_background(clr.raywhite)
+            rl.clear_background(Colors.raywhite)
             self.draw()
             rl.end_drawing()
         rl.close_window()
 
     def draw(self) -> None:
-        self.test_selection.draw()
-        rl.draw_text(self.window_title, 10, 10, 30, clr.black)
-        rl.draw_rectangle(100,100,525,525,clr.gray) # border
-        draw_checkerboard(rl.Color(235,235,235,255), clr.raywhite, 18,50, 6)
+        rl.draw_text(self.window_title, 10, 10, 30, Colors.black)
+        rl.draw_rectangle(100,100,525,525,Colors.gray) # border
+        draw_checkerboard(rl.Color(235,235,235,255), Colors.raywhite, 18,50, 6)
         rl.draw_rectangle(10,650,1180,140,rl.Color(235,235,235,255)) # toolbox btm
         rl.draw_rectangle(650,100,500,525,rl.Color(235,235,235,255)) # toolbox right
 
-        rl.draw_text("Colors", 660,110,30,clr.black)
-        rl.draw_text("Toolbox -- Info", 20,660,20,clr.black)
+        rl.draw_text("Colors", 660,110,30,Colors.black)
+        rl.draw_text("Info", 20,660,30,Colors.black)
+        rl.draw_text(f"Current Mode: {self.mode}", 20, 690, 20, Colors.black)
+
+        # color grid
+        for count, clr in enumerate(self.clr_dict.values()):
+            if count in range(0,12):
+                self.draw_color_ypos = 150
+            if count in range(13,24):
+                self.draw_color_ypos = 190
+            if count in range(25,36):
+                self.draw_color_ypos = 230
+            if count in range(37,48):
+                self.draw_color_ypos = 270
+            
+            if (count == 13 or count == 25 or count == 37) and self.draw_color_xpos > 620:
+                self.draw_color_xpos = 660
+            elif self.draw_color_xpos > 620 and count == 0:
+                self.draw_color_xpos = 620
+            else:
+                self.draw_color_xpos += 40
+            rl.draw_rectangle(self.draw_color_xpos,self.draw_color_ypos,40,40,clr)
+        if self.mode == self.modes[0]:
+            self.selection.draw()
 
     def update(self) -> None:
-        self.test_selection.update()
+        if self.mode == self.modes[0]:
+            self.selection.update()
 
 if __name__ == "__main__":
     Game()
