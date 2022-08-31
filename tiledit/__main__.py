@@ -5,9 +5,7 @@ from colors import get_color_dict
 class Selection():
     def __init__(self, pos: rl.Vector2, width:int, thickness:int) -> None:
         self.selection_clr = rl.Color(200,200,200,255)
-        
-        self.cycle_count = 0
-        self.count = 0
+        self.timer = 0
 
         self.rect_above = rl.Rectangle(pos.x-thickness, pos.y-thickness,width+(thickness*2), thickness)
         self.rect_below = rl.Rectangle(pos.x-thickness, pos.y+width,width+(thickness*2), thickness)
@@ -21,14 +19,13 @@ class Selection():
         rl.draw_rectangle_rec(self.rect_right, self.selection_clr)
     
     def update(self):
-        self.count += 1
-        if self.count % 10 == 0:
-            self.cycle_count += 1
-        
-        if self.cycle_count % 2 == 0:
-            self.selection_clr.a -= 35
-        else:
-            self.selection_clr.a += 35
+        self.timer += 1
+
+        if self.timer % 24 == 0:
+            self.selection_clr.a = 255
+        elif self.timer % 24 == 12:
+            self.selection_clr.a = 0
+
 
 def draw_checkerboard(base_color: rl.Color, alt_color: rl.Color, begin: int, length: int, tilesize: int):
         is_alt_color: bool = True
@@ -57,7 +54,8 @@ class Game():
         self.window_banner = "[NEW FILE]"
         self.window_title = f"TileEdit -- {self.window_banner}"
         self.test_selection = Selection(rl.Vector2(10,10),35,5)
-
+        print(len(self.clr_dict))
+   
         while not rl.window_should_close():
             self.update()
             rl.begin_drawing()
