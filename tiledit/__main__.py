@@ -1,7 +1,7 @@
 import pyray as rl
 from colors import Colors
 from colors import get_color_dict
-from raylib import KEY_C, KEY_E, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
+from raylib import KEY_C, KEY_E, KEY_SPACE, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 
 class ColoredRect():
     def __init__(self, name_str: str, posx: float, posy: float, width: float, height: float, color: rl.Color) -> None:
@@ -70,6 +70,9 @@ class Main():
         rl.init_window(1200,800,"TileEdit")
         rl.set_target_fps(60)
 
+        self.paintbrush_color: rl.Color = Colors.black
+        self.paint_selection = Selection(rl.Vector2(108,108), 30,1)
+        self.paint_selection_index = rl.Vector2(0,0)
         self.window_banner = "[NEW FILE]"
         self.window_title = f"TileEdit -- {self.window_banner}"
         self.selection = Selection(rl.Vector2(660,150),40,5)
@@ -107,7 +110,7 @@ class Main():
     def draw(self) -> None:
         rl.draw_text(self.window_title, 10, 10, 30, Colors.black)
         rl.draw_rectangle(100,100,525,525,Colors.gray) # border
-        draw_checkerboard(rl.Color(235,235,235,255), Colors.raywhite, 18,50, 6)
+        draw_checkerboard(rl.Color(235,235,235,255), Colors.raywhite, 18,50,6)
         rl.draw_rectangle(10,650,1180,140,rl.Color(235,235,235,255)) # toolbox btm
         rl.draw_rectangle(650,100,500,525,rl.Color(235,235,235,255)) # toolbox right
 
@@ -125,7 +128,28 @@ class Main():
         if self.mode == self.modes[0]:
             self.selection.draw()
 
-    def update(self) -> None:        
+        if self.mode == self.modes[1]:
+            self.paint_selection.draw()
+
+    def update(self) -> None:      
+        if self.mode == self.modes[1]:
+            self.paint_selection.update()
+
+            if rl.is_key_pressed(KEY_UP):
+                if self.paint_selection_index.y - 1 >= 0:
+                    self.paint_selection_index.y -= 1
+            if rl.is_key_pressed(KEY_DOWN):
+                if self.paint_selection_index.y + 1 < 50:
+                    self.paint_selection_index.y += 1
+
+            if rl.is_key_pressed(KEY_LEFT):
+                if self.paint_selection_index.x - 1 >=0:
+                    self.selection_index.x -= 1
+            if rl.is_key_pressed(KEY_RIGHT):
+                if self.paint_selection_index.x + 1 < 50:
+                    self.paint_selection_index.x += 1
+        
+
         if rl.is_key_pressed(KEY_E):
             self.mode = "edit"
         if rl.is_key_pressed(KEY_C):
@@ -147,6 +171,10 @@ class Main():
             if rl.is_key_pressed(KEY_RIGHT):
                 if self.selection_index.x + 1 < 11:
                     self.selection_index.x += 1
+
+            if rl.is_key_pressed(KEY_SPACE):
+                self.paintbrush_color = self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].clr
+                self.mode = "edit"
 
 if __name__ == "__main__":
     Main()
