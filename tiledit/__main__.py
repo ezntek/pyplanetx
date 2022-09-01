@@ -3,9 +3,11 @@ from colors import Colors
 from colors import get_color_dict
 
 class ColoredRect():
-    def __init__(self, posx: float, posy: float, width: float, height: float, color: rl.Color) -> None:
+    def __init__(self, name_str: str, posx: float, posy: float, width: float, height: float, color: rl.Color) -> None:
         self.rect = rl.Rectangle(posx,posy,width,height)
         self.clr = color
+        self.name_as_str: str = name_str
+
     def draw(self):
         rl.draw_rectangle_rec(self.rect, self.clr)
 
@@ -13,6 +15,9 @@ class Selection():
     def __init__(self, pos: rl.Vector2, width:int, thickness:int) -> None:
         self.selection_clr = rl.Color(200,200,200,255)
         self.timer = 0
+        self.pos = pos
+        self.width = width
+        self.thickness = thickness
 
         self.rect_above = rl.Rectangle(pos.x-thickness, pos.y-thickness,width+(thickness*2), thickness)
         self.rect_below = rl.Rectangle(pos.x-thickness, pos.y+width,width+(thickness*2), thickness)
@@ -26,6 +31,12 @@ class Selection():
         rl.draw_rectangle_rec(self.rect_right, self.selection_clr)
     
     def update(self):
+        self.rect_above.x, self.rect_above.y, self.rect_above.width, self.rect_above.height = self.pos.x-self.thickness, self.pos.y-self.thickness, self.width+(self.thickness*2), self.thickness
+        self.rect_below.x, self.rect_below.y, self.rect_below.width, self.rect_below.height = self.pos.x-self.thickness, self.pos.y+self.width, self.width+(self.thickness*2), self.thickness
+        self.rect_left.x, self.rect_left.y, self.rect_left.width, self.rect_left.height = self.pos.x-self.thickness, self.pos.y-self.thickness, self.thickness, self.width+(self.thickness*2)
+        self.rect_right.x, self.rect_right.y, self.rect_right.width, self.rect_right.height = self.pos.x+self.width, self.pos.y-self.thickness, self.thickness, self.width+(self.thickness*2)
+        
+
         self.timer += 1
 
         if self.timer % 60 == 0:
@@ -47,7 +58,7 @@ def draw_checkerboard(base_color: rl.Color, alt_color: rl.Color, begin: int, len
                     is_alt_color = not is_alt_color
             is_alt_color = not is_alt_color
 
-class Game():
+class Main():
     def __init__(self) -> None:
         self.grid = [[Colors.nothing for _ in range(50)] for _ in range(50)]
         
@@ -67,6 +78,22 @@ class Game():
 
         self.draw_color_ypos = 0
         self.draw_color_xpos = 660
+
+        self.selection_index = rl.Vector2(0,0)
+        self.color_grid = [
+            [ColoredRect(key,620+(count*40),150,40,40,value) 
+                for count, (key, value) in enumerate(self.clr_dict.items())
+                    if count in range(0,12)],
+            [ColoredRect(key,140+(count*40),190,40,40,value) 
+                for count, (key, value) in enumerate(self.clr_dict.items())
+                    if count in range(13,24)],
+            [ColoredRect(key,-340+(count*40),230,40,40,value) 
+                for count, (key, value) in enumerate(self.clr_dict.items())
+                    if count in range(25,36)],
+            [ColoredRect(key,-820+(count*40),270,40,40,value) 
+                for count, (key, value) in enumerate(self.clr_dict.items())
+                    if count in range(37,48)],
+        ]
 
         while not rl.window_should_close():
             self.update()
@@ -88,29 +115,17 @@ class Game():
         rl.draw_text(f"Current Mode: {self.mode}", 20, 690, 20, Colors.black)
 
         # color grid
-        for count, clr in enumerate(self.clr_dict.values()):
-            if count in range(0,12):
-                self.draw_color_ypos = 150
-            if count in range(13,24):
-                self.draw_color_ypos = 190
-            if count in range(25,36):
-                self.draw_color_ypos = 230
-            if count in range(37,48):
-                self.draw_color_ypos = 270
-            
-            if (count == 13 or count == 25 or count == 37) and self.draw_color_xpos > 620:
-                self.draw_color_xpos = 660
-            elif self.draw_color_xpos > 620 and count == 0:
-                self.draw_color_xpos = 620
-            else:
-                self.draw_color_xpos += 40
-            rl.draw_rectangle(self.draw_color_xpos,self.draw_color_ypos,40,40,clr)
+        for column in self.color_grid:
+            for clr_rect in column:
+                clr_rect.draw()
+        # selection
         if self.mode == self.modes[0]:
             self.selection.draw()
 
     def update(self) -> None:
+        
         if self.mode == self.modes[0]:
             self.selection.update()
 
 if __name__ == "__main__":
-    Game()
+    Main()
