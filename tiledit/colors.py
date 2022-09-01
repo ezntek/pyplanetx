@@ -1,6 +1,5 @@
 from pyray import Color
 class Colors:
-    nothing             = Color(255,255,255,0)
 
     # grayscale colors
     
@@ -74,6 +73,8 @@ class Colors:
     lavendar            = Color(190,125,255,255)
     shit                = Color(128,64,0,255)
     dirt                = Color(180,90,0,255)
+    
+    nothing             = Color(255,255,255,0)
 
 def get_color_dict() -> dict[str,Color]:
     return {key:value for key, value in Colors.__dict__.items() if not key.startswith('__') and not callable(key)}

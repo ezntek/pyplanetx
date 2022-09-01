@@ -1,6 +1,7 @@
 import pyray as rl
 from colors import Colors
 from colors import get_color_dict
+from raylib import KEY_C, KEY_E, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 
 class ColoredRect():
     def __init__(self, name_str: str, posx: float, posy: float, width: float, height: float, color: rl.Color) -> None:
@@ -39,9 +40,9 @@ class Selection():
 
         self.timer += 1
 
-        if self.timer % 60 == 0:
+        if self.timer % 20 == 0:
             self.selection_clr.a = 255
-        elif self.timer % 60 == 30:
+        elif self.timer % 20 == 10:
             self.selection_clr.a = 0
 
 
@@ -81,18 +82,18 @@ class Main():
 
         self.selection_index = rl.Vector2(0,0)
         self.color_grid = [
-            [ColoredRect(key,620+(count*40),150,40,40,value) 
+            [ColoredRect(key,660+(count*40),150,40,40,value) 
                 for count, (key, value) in enumerate(self.clr_dict.items())
-                    if count in range(0,12)],
-            [ColoredRect(key,140+(count*40),190,40,40,value) 
+                    if count in range(0,11)],
+            [ColoredRect(key,180+(count*40),190,40,40,value) 
                 for count, (key, value) in enumerate(self.clr_dict.items())
-                    if count in range(13,24)],
-            [ColoredRect(key,-340+(count*40),230,40,40,value) 
+                    if count in range(12,23)],
+            [ColoredRect(key,-300+(count*40),230,40,40,value) 
                 for count, (key, value) in enumerate(self.clr_dict.items())
-                    if count in range(25,36)],
-            [ColoredRect(key,-820+(count*40),270,40,40,value) 
+                    if count in range(24,35)],
+            [ColoredRect(key,-780+(count*40),270,40,40,value) 
                 for count, (key, value) in enumerate(self.clr_dict.items())
-                    if count in range(37,48)],
+                    if count in range(36,48) and value != Colors.nothing],
         ]
 
         while not rl.window_should_close():
@@ -113,6 +114,8 @@ class Main():
         rl.draw_text("Colors", 660,110,30,Colors.black)
         rl.draw_text("Info", 20,660,30,Colors.black)
         rl.draw_text(f"Current Mode: {self.mode}", 20, 690, 20, Colors.black)
+        if self.mode == self.modes[0]:
+            rl.draw_text(f"Selected Color: {self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].name_as_str}", 20, 710, 20, Colors.black)
 
         # color grid
         for column in self.color_grid:
@@ -122,10 +125,28 @@ class Main():
         if self.mode == self.modes[0]:
             self.selection.draw()
 
-    def update(self) -> None:
-        
+    def update(self) -> None:        
+        if rl.is_key_pressed(KEY_E):
+            self.mode = "edit"
+        if rl.is_key_pressed(KEY_C):
+            self.mode = "color picker"
         if self.mode == self.modes[0]:
             self.selection.update()
+            self.selection.pos.x, self.selection.pos.y = self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].rect.x, self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].rect.y
+
+            if rl.is_key_pressed(KEY_UP):
+                if self.selection_index.y - 1 >= 0:
+                    self.selection_index.y -= 1
+            if rl.is_key_pressed(KEY_DOWN):
+                if self.selection_index.y + 1 < 4:
+                    self.selection_index.y += 1
+
+            if rl.is_key_pressed(KEY_LEFT):
+                if self.selection_index.x - 1 >=0:
+                    self.selection_index.x -= 1
+            if rl.is_key_pressed(KEY_RIGHT):
+                if self.selection_index.x + 1 < 11:
+                    self.selection_index.x += 1
 
 if __name__ == "__main__":
     Main()

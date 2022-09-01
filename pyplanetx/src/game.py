@@ -3,7 +3,7 @@ Main Game Launcher
 """
 
 import pyray as rl
-from raylib import KEY_LEFT, KEY_RIGHT, KEY_DOWN, KEY_UP, KEY_W, KEY_A, KEY_S, KEY_D
+from raylib import KEY_C, KEY_LEFT, KEY_P, KEY_RIGHT, KEY_DOWN, KEY_UP, KEY_W, KEY_A, KEY_S, KEY_D
 
 class Game(): 
     def __init__(self) -> None:
@@ -91,4 +91,9 @@ class Game():
                 self.camera_pan_queue.append(KEY_S)
         
     def _update(self, dt: float) -> None:
+        if rl.is_key_pressed(KEY_C):
+            self.mode = 1
+        if rl.is_key_pressed(KEY_P):
+            self.mode = 0
+
         self._movement(dt) 

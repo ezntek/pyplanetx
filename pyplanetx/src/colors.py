@@ -1,5 +1,7 @@
 from pyray import Color
 class Colors:
+    nothing             = Color(255,255,255,0)
+
     # grayscale colors
     
     black               = Color(0,0,0,255)
