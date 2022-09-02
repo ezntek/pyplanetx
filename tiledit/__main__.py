@@ -40,17 +40,10 @@ class Selection():
 
         self.timer += 1
 
-        if self.timer % 20 == 0:
-            self.selection_clr.a = 255
-        elif self.timer % 20 == 10:
-            self.selection_clr.a = 0
-
-
 def draw_checkerboard(base_color: rl.Color, alt_color: rl.Color, begin: int, length: int, tilesize: int):
         is_alt_color: bool = True
-        for y in range(begin*tilesize, begin+(length*tilesize*2), tilesize):
-            is_alt_color = not is_alt_color
-            for x in range(begin*tilesize, begin+(length*tilesize*2), tilesize):
+        for y in range(begin, begin+(length*tilesize*2), tilesize):
+            for x in range(begin, begin+(length*tilesize*2), tilesize):
                 if is_alt_color:
                     rl.draw_rectangle(x,y,tilesize,tilesize, alt_color)
                     is_alt_color = not is_alt_color
@@ -71,11 +64,13 @@ class Main():
         rl.set_target_fps(60)
 
         self.paintbrush_color: rl.Color = Colors.black
-        self.paint_selection = Selection(rl.Vector2(108,108), 30,1)
+        self.paint_selection = Selection(rl.Vector2(108,108), 8,1)
         self.paint_selection_index = rl.Vector2(0,0)
         self.window_banner = "[NEW FILE]"
         self.window_title = f"TileEdit -- {self.window_banner}"
         self.selection = Selection(rl.Vector2(660,150),40,5)
+
+        self.hold_delay: int = 0
 
         rl.set_window_title(self.window_title)
         print(len(self.clr_dict))
@@ -109,11 +104,11 @@ class Main():
 
     def draw(self) -> None:
         rl.draw_text(self.window_title, 10, 10, 30, Colors.black)
-        rl.draw_rectangle(100,100,525,525,Colors.gray) # border
-        draw_checkerboard(rl.Color(235,235,235,255), Colors.raywhite, 18,50,6)
+        rl.draw_rectangle(158,158,415,415,Colors.gray) # border
+        draw_checkerboard(rl.Color(235,235,235,255), Colors.raywhite, 166,50,4)
         rl.draw_rectangle(10,650,1180,140,rl.Color(235,235,235,255)) # toolbox btm
         rl.draw_rectangle(650,100,500,525,rl.Color(235,235,235,255)) # toolbox right
-
+        
         rl.draw_text("Colors", 660,110,30,Colors.black)
         rl.draw_text("Info", 20,660,30,Colors.black)
         rl.draw_text(f"Current Mode: {self.mode}", 20, 690, 20, Colors.black)
@@ -135,20 +130,37 @@ class Main():
         if self.mode == self.modes[1]:
             self.paint_selection.update()
 
-            if rl.is_key_pressed(KEY_UP):
-                if self.paint_selection_index.y - 1 >= 0:
-                    self.paint_selection_index.y -= 1
-            if rl.is_key_pressed(KEY_DOWN):
-                if self.paint_selection_index.y + 1 < 50:
-                    self.paint_selection_index.y += 1
+            if rl.is_key_down(KEY_UP):
+                self.hold_delay += 1
+                if self.hold_delay > 16:
+                    if self.paint_selection_index.y - 1 >= 0:
+                        self.paint_selection_index.y -= 1
+            if rl.is_key_down(KEY_DOWN):
+                self.hold_delay += 1
+                if self.hold_delay > 16:
+                    if self.paint_selection_index.y + 1 < 50:
+                        self.paint_selection_index.y += 1
 
-            if rl.is_key_pressed(KEY_LEFT):
-                if self.paint_selection_index.x - 1 >=0:
-                    self.selection_index.x -= 1
-            if rl.is_key_pressed(KEY_RIGHT):
-                if self.paint_selection_index.x + 1 < 50:
-                    self.paint_selection_index.x += 1
+            if rl.is_key_down(KEY_LEFT):
+                self.hold_delay += 1
+                if self.hold_delay > 16:
+                    if self.paint_selection_index.x - 1 >=0:
+                        self.paint_selection_index.x -= 1
+
+            if rl.is_key_down(KEY_RIGHT):
+                self.hold_delay += 1
+                if self.hold_delay > 16:
+                    if self.paint_selection_index.x + 1 < 50:
+                        self.paint_selection_index.x += 1
+
+            if rl.is_key_pressed(KEY_UP):
+                pass
+
+            if rl.is_key_released(KEY_LEFT) or rl.is_key_released(KEY_RIGHT) or rl.is_key_released(KEY_UP) or rl.is_key_released(KEY_DOWN):
+                self.hold_delay = 0
         
+            self.paint_selection.pos.x = 166+(8*self.paint_selection_index.x)
+            self.paint_selection.pos.y = 166+(8*self.paint_selection_index.y)
 
         if rl.is_key_pressed(KEY_E):
             self.mode = "edit"
