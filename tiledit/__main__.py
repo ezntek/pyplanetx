@@ -1,7 +1,7 @@
 import pyray as rl
 from colors import Colors
 from colors import get_color_dict
-from raylib import KEY_C, KEY_E, KEY_SPACE, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
+from raylib import KEY_C, KEY_E, KEY_ENTER, KEY_F, KEY_LEFT_CONTROL, KEY_SPACE, KEY_UP, KEY_RIGHT_CONTROL, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 
 class ColoredRect():
     def __init__(self, name_str: str, posx: float, posy: float, width: float, height: float, color: rl.Color) -> None:
@@ -112,8 +112,7 @@ class Main():
         rl.draw_text("Colors", 660,110,30,Colors.black)
         rl.draw_text("Info", 20,660,30,Colors.black)
         rl.draw_text(f"Current Mode: {self.mode}", 20, 690, 20, Colors.black)
-        if self.mode == self.modes[0]:
-            rl.draw_text(f"Selected Color: {self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].name_as_str}", 20, 710, 20, Colors.black)
+        rl.draw_text(f"Selected Color: {self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].name_as_str}", 20, 710, 20, Colors.black)
 
         # color grid
         for column in self.color_grid:
@@ -122,6 +121,10 @@ class Main():
         # selection
         if self.mode == self.modes[0]:
             self.selection.draw()
+        
+        for y, column in enumerate(self.grid):
+            for x, clr in enumerate(column):
+                rl.draw_rectangle(166+(x*8),166+(y*8),8,8,clr)
 
         if self.mode == self.modes[1]:
             self.paint_selection.draw()
@@ -129,6 +132,14 @@ class Main():
     def update(self) -> None:      
         if self.mode == self.modes[1]:
             self.paint_selection.update()
+            
+            if rl.is_key_pressed(KEY_F):
+                for y in range(len(self.grid)):
+                    for x in range(len(self.grid)):
+                        self.grid[y][x] = self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].clr
+            
+            if rl.is_key_pressed(KEY_SPACE):
+                self.grid[int(self.paint_selection_index.y)][int(self.paint_selection_index.x)] = self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].clr
 
             if rl.is_key_down(KEY_UP):
                 self.hold_delay += 1
@@ -154,7 +165,13 @@ class Main():
                         self.paint_selection_index.x += 1
 
             if rl.is_key_pressed(KEY_UP):
-                pass
+                if self.paint_selection_index.y - 1 >= 0: self.paint_selection_index.y -= 1
+            if rl.is_key_pressed(KEY_DOWN):
+                if self.paint_selection_index.y + 1 < 50: self.paint_selection_index.y += 1
+            if rl.is_key_pressed(KEY_LEFT):
+                if self.paint_selection_index.x - 1 >= 0: self.paint_selection_index.x -= 1
+            if rl.is_key_pressed(KEY_RIGHT):
+                if self.paint_selection_index.x + 1 < 50: self.paint_selection_index.x += 1
 
             if rl.is_key_released(KEY_LEFT) or rl.is_key_released(KEY_RIGHT) or rl.is_key_released(KEY_UP) or rl.is_key_released(KEY_DOWN):
                 self.hold_delay = 0
@@ -184,7 +201,7 @@ class Main():
                 if self.selection_index.x + 1 < 11:
                     self.selection_index.x += 1
 
-            if rl.is_key_pressed(KEY_SPACE):
+            if rl.is_key_pressed(KEY_SPACE) or rl.is_key_pressed(KEY_ENTER):
                 self.paintbrush_color = self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].clr
                 self.mode = "edit"
 
