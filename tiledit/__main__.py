@@ -1,7 +1,7 @@
 import pyray as rl
 from colors import Colors
 from colors import get_color_dict
-from raylib import KEY_C, KEY_E, KEY_ENTER, KEY_F, KEY_LEFT_CONTROL, KEY_SPACE, KEY_UP, KEY_RIGHT_CONTROL, KEY_DOWN, KEY_LEFT, KEY_RIGHT
+from raylib import KEY_P, KEY_D, KEY_S, KEY_ENTER, KEY_ESCAPE,KEY_BACKSPACE, KEY_LEFT_CONTROL, KEY_NULL, KEY_SPACE, KEY_UP, KEY_RIGHT_CONTROL, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_LEFT_ALT, KEY_RIGHT_ALT
 
 class ColoredRect():
     def __init__(self, name_str: str, posx: float, posy: float, width: float, height: float, color: rl.Color) -> None:
@@ -52,16 +52,40 @@ def draw_checkerboard(base_color: rl.Color, alt_color: rl.Color, begin: int, len
                     is_alt_color = not is_alt_color
             is_alt_color = not is_alt_color
 
+class File():
+    def __init__(self, name: str, filename: str = "Untitled", filepath = "./") -> None:
+        self.grid = [[Colors.nothing for _ in range(50)] for _ in range(50)] # initialize grid
+        self.name: str = name
+        self.filename: str = f"{filename}.pxt"
+        self.path_to_file: str = filepath
+
+    def get_grid(self) -> list[list[rl.Color]]:
+        return self.grid
+    
+    def set_grid(self, new_grid: list[list[rl.Color]]):
+        self.grid = new_grid
+    
+    def _get_key_from_val(self, val, dic: dict):
+        for k, v in dic.items():
+            if v == val:
+                return k
+
+    def _encode(self):
+        pass
+        
+    def save(self):
+        pass
+
 class Main():
     def __init__(self) -> None:
-        self.grid = [[Colors.nothing for _ in range(50)] for _ in range(50)]
-        
+        self.grid = [[Colors.nothing for _ in range(50)] for _ in range(50)]        
         self.clr_dict = get_color_dict()
-        self.modes = ["color picker", "edit", "menu"]
+        self.modes = ["color picker", "edit", "menu", "selection fill", "erase"]
         self.mode = "color picker"
 
         rl.init_window(1200,800,"TileEdit")
         rl.set_target_fps(60)
+        rl.set_exit_key(KEY_NULL)
 
         self.paintbrush_color: rl.Color = Colors.black
         self.paint_selection = Selection(rl.Vector2(108,108), 8,1)
@@ -71,6 +95,9 @@ class Main():
         self.selection = Selection(rl.Vector2(660,150),40,5)
 
         self.hold_delay: int = 0
+        self.selection_fill_has_started: bool = False
+
+        self.selection_fill_index = [rl.Vector2(0,0), rl.Vector2(0,0)]
 
         rl.set_window_title(self.window_title)
         print(len(self.clr_dict))
@@ -133,14 +160,31 @@ class Main():
         if self.mode == self.modes[1]:
             self.paint_selection.update()
             
-            if rl.is_key_pressed(KEY_F):
+            # clear
+            if (rl.is_key_down(KEY_RIGHT_CONTROL) or rl.is_key_down(KEY_LEFT_CONTROL)) and rl.is_key_pressed(KEY_BACKSPACE):
+                for y in range(len(self.grid)):
+                    for x in range(len(self.grid)):
+                        self.grid[y][x] = Colors.nothing
+
+            # erase
+            if rl.is_key_down(KEY_BACKSPACE):
+                self.grid[int(self.paint_selection_index.y)][int(self.paint_selection_index.x)] = Colors.nothing
+
+            # exit edit mode
+            if rl.is_key_pressed(KEY_ESCAPE):
+                self.mode = "color picker"
+
+            # fill screen
+            if (rl.is_key_down(KEY_LEFT_CONTROL) or rl.is_key_down(KEY_RIGHT_CONTROL)) and rl.is_key_pressed(KEY_SPACE):
                 for y in range(len(self.grid)):
                     for x in range(len(self.grid)):
                         self.grid[y][x] = self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].clr
             
-            if rl.is_key_pressed(KEY_SPACE):
+            # fill pixel
+            if rl.is_key_down(KEY_SPACE):
                 self.grid[int(self.paint_selection_index.y)][int(self.paint_selection_index.x)] = self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].clr
 
+            # pixel selection movement
             if rl.is_key_down(KEY_UP):
                 self.hold_delay += 1
                 if self.hold_delay > 16:
@@ -179,10 +223,18 @@ class Main():
             self.paint_selection.pos.x = 166+(8*self.paint_selection_index.x)
             self.paint_selection.pos.y = 166+(8*self.paint_selection_index.y)
 
-        if rl.is_key_pressed(KEY_E):
+            if rl.is_key_pressed(KEY_ESCAPE):
+                self.mode = "color picker"
+
+        if rl.is_key_pressed(KEY_S):
+            self.mode="selection fill"
+
+        if rl.is_key_pressed(KEY_D):
             self.mode = "edit"
-        if rl.is_key_pressed(KEY_C):
+        
+        if rl.is_key_pressed(KEY_P):
             self.mode = "color picker"
+        
         if self.mode == self.modes[0]:
             self.selection.update()
             self.selection.pos.x, self.selection.pos.y = self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].rect.x, self.color_grid[int(self.selection_index.y)][int(self.selection_index.x)].rect.y
